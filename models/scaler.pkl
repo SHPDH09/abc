@@ -4,7 +4,7 @@ import joblib
 import os
 
 # Load your data
-df = pd.read_csv("data/employee_data.csv")  # Adjust path if needed
+df = pd.read_csv("employee_data.csv")  # Adjust path if needed
 
 # Select features used for training
 features = ['WorkHours', 'TasksCompleted', 'BreaksTaken', 'OvertimeHours', 'LeavesTaken', 'PerformanceRating']
