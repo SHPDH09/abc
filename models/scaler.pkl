@@ -3,14 +3,14 @@ from sklearn.preprocessing import StandardScaler
 import joblib
 import os
 
-# Load your data
-df = pd.read_csv("employee_data.csv")  # Adjust path if needed
+# Load your CSV
+df = pd.read_csv("employee_data.csv")  # adjust path if needed
 
-# Select features used for training
+# Features used for scaling
 features = ['WorkHours', 'TasksCompleted', 'BreaksTaken', 'OvertimeHours', 'LeavesTaken', 'PerformanceRating']
 X = df[features]
 
-# Fit the scaler
+# Fit and save scaler
 scaler = StandardScaler()
 scaler.fit(X)
 
@@ -18,4 +18,4 @@ scaler.fit(X)
 os.makedirs("models", exist_ok=True)
 joblib.dump(scaler, "models/scaler.pkl")
 
-print("✅ scaler.pkl created and saved to models/")
+print("✅ Fitted scaler.pkl saved to models/")
