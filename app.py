@@ -6,6 +6,7 @@ import seaborn as sns
 import joblib
 from sklearn.preprocessing import StandardScaler
 
+
 # Page Config
 st.set_page_config(page_title="Burnout Risk Analyzer", layout="wide")
 st.title("🧠 AI-Based Workforce Productivity & Burnout Analyzer")
