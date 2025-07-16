@@ -39,8 +39,8 @@ accuracy = accuracy_score(y_test, y_pred)
 report = classification_report(y_test, y_pred, output_dict=True)
 
 # Save model
-os.makedirs("/mnt/data/models", exist_ok=True)
-model_path = "/mnt/data/models/burnout_model.pkl"
+os.makedirs("models", exist_ok=True)
+model_path = "models/burnout_model.pkl"
 joblib.dump(model, model_path)
 
 model_path, accuracy, report
