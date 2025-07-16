@@ -6,24 +6,16 @@ import seaborn as sns
 import joblib
 from sklearn.preprocessing import StandardScaler
 
-# Load ML model
-try:
-    model = joblib.load("models/productivity_model.pkl")
-except:
-    model = None
-
-# Title
-st.set_page_config(page_title="Workforce Productivity Analyzer", layout="wide")
-st.title("🧠 AI-Based Workforce Productivity & Performance Analyzer")
-st.markdown("Upload employee data and analyze productivity, performance, and burnout risks.")
+# Page Config
+st.set_page_config(page_title="Burnout Risk Analyzer", layout="wide")
+st.title("🧠 AI-Based Workforce Productivity & Burnout Analyzer")
+st.markdown("Upload employee data and let AI detect potential burnout risks.")
 
 # Sidebar
-st.sidebar.header("⚙️ Upload & Settings")
+st.sidebar.header("⚙️ Upload Settings")
+uploaded_file = st.sidebar.file_uploader("📁 Upload Employee Data (.csv)", type=["csv"])
 
-# File upload
-uploaded_file = st.sidebar.file_uploader("Upload Employee Data (.csv)", type=['csv'])
-
-# Show sample format
+# Show example data
 if st.sidebar.checkbox("Show sample format"):
     sample_df = pd.DataFrame({
         'EmployeeID': ['E001', 'E002'],
@@ -36,47 +28,63 @@ if st.sidebar.checkbox("Show sample format"):
     })
     st.sidebar.write(sample_df)
 
-# Main logic
-if uploaded_file is not None:
+# Load ML Model
+try:
+    model = joblib.load("models/burnout_model.pkl")
+    model_loaded = True
+except:
+    st.error("❌ burnout_model.pkl not found in models folder.")
+    model_loaded = False
+
+# Optional: Load scaler (if used during training)
+try:
+    scaler = joblib.load("models/scaler.pkl")
+except:
+    scaler = StandardScaler()
+
+# Main Logic
+if uploaded_file:
     df = pd.read_csv(uploaded_file)
-    st.subheader("📊 Uploaded Data")
+    st.subheader("📊 Uploaded Employee Data")
     st.dataframe(df)
 
-    # Feature Selection
+    # Required features
     features = ['WorkHours', 'TasksCompleted', 'BreaksTaken', 'OvertimeHours', 'LeavesTaken', 'PerformanceRating']
+    
     if all(col in df.columns for col in features):
         X = df[features]
 
-        # Preprocessing
-        scaler = StandardScaler()
-        X_scaled = scaler.fit_transform(X)
+        # Scale
+        X_scaled = scaler.transform(X)
 
-        # Prediction
-        if model:
+        if model_loaded:
+            # Predict Burnout
             predictions = model.predict(X_scaled)
-            df['ProductivityLevel'] = predictions
-            df['BurnoutRisk'] = ['High' if x < 1 else 'Low' for x in predictions]
+            df['BurnoutRisk'] = ['High' if p == 1 else 'Low' for p in predictions]
 
             st.subheader("🔍 Prediction Results")
-            st.dataframe(df[['EmployeeID'] + features + ['ProductivityLevel', 'BurnoutRisk']])
+            st.dataframe(df[['EmployeeID'] + features + ['BurnoutRisk']])
 
-            # Visualizations
-            st.subheader("📈 Productivity Level Distribution")
-            fig, ax = plt.subplots()
-            sns.countplot(data=df, x='ProductivityLevel', palette='Set2', ax=ax)
-            st.pyplot(fig)
+            # Chart 1: Burnout Distribution
+            st.subheader("🔥 Burnout Risk Distribution")
+            fig1, ax1 = plt.subplots()
+            sns.countplot(x='BurnoutRisk', data=df, palette='coolwarm', ax=ax1)
+            ax1.set_title("Burnout Risk Count")
+            st.pyplot(fig1)
 
-            st.subheader("🔥 Burnout Risk Analysis")
-            burnout_counts = df['BurnoutRisk'].value_counts()
-            st.bar_chart(burnout_counts)
+            # Chart 2: Correlation Heatmap
+            st.subheader("📈 Feature Correlation Heatmap")
+            fig2, ax2 = plt.subplots(figsize=(8, 5))
+            sns.heatmap(df[features].corr(), annot=True, cmap="YlGnBu", ax=ax2)
+            st.pyplot(fig2)
 
         else:
-            st.error("⚠️ ML model not found. Please ensure `productivity_model.pkl` exists in the `models/` folder.")
+            st.error("⚠️ Model not loaded. Check the `models/` folder for burnout_model.pkl.")
     else:
-        st.error("Missing required columns in uploaded file.")
+        st.error(f"❌ Missing required columns: {features}")
 else:
-    st.info("👈 Please upload a CSV file to start analysis.")
+    st.info("👈 Upload a CSV file to begin analysis.")
 
 # Footer
 st.markdown("---")
-st.markdown("📌 Developed by Raunak Kumar | LNCTU - BCA (AIDA)")
+st.markdown("📌 Developed by **Raunak Kumar** | LNCTU - BCA (AIDA)")
